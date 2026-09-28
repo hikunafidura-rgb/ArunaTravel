@@ -64,6 +64,7 @@ tailwind.config = {
       <a data-nav="contact" href="#/contact" class="opacity-90 hover:opacity-100 hover:underline underline-offset-8">Contact</a>
     </div>
     <div class="flex items-center gap-2">
+      <button id="searchBtn" class="w-11 h-11 grid place-items-center rounded-full hairline bg-white/10 font-bold text-[18px]" aria-label="Search packages">⌕</button>
       <a href="#/contact" class="btn-terra hidden sm:inline-flex items-center text-[14px] font-bold px-5 py-2.5 rounded-full">Plan Your Trip</a>
       <button id="burger" class="lg:hidden w-11 h-11 grid place-items-center rounded-full hairline bg-white/10" aria-label="Buka menu" aria-expanded="false" aria-controls="mobileMenu">☰</button>
     </div>
@@ -79,6 +80,31 @@ tailwind.config = {
     </nav>
   </div>
 </header>
+
+<!-- ============ GLOBAL SEARCH ============ -->
+<div id="searchWrap" class="hidden fixed inset-0 z-[70]" role="dialog" aria-modal="true" aria-label="Search packages">
+  <div id="searchBackdrop" class="absolute inset-0 bg-forestdeep/60"></div>
+  <div class="relative max-w-2xl mx-auto mt-20 sm:mt-28 px-4">
+    <div class="bg-offwhite rounded-2xl shadow-2xl overflow-hidden hairline">
+      <div class="flex items-center gap-1.5 pl-4 pr-2 border-b border-forest/10">
+        <span aria-hidden="true" class="font-bold text-charcoal/50">⌕</span>
+        <input id="globalSearch" type="search" placeholder="Search destination, package, or activity..." autocomplete="off" aria-label="Search destination, package, or activity" class="w-full py-4 px-2 bg-transparent outline-none">
+        <button id="searchClose" class="w-10 h-10 grid place-items-center rounded-full hover:bg-sand font-bold shrink-0" aria-label="Close search">✕</button>
+      </div>
+      <div class="px-4 pt-3 flex flex-wrap gap-2" aria-label="Popular searches">
+        <button class="schip px-4 py-1.5 rounded-full text-[13px] font-bold bg-sand hover:bg-forest hover:text-white transition" data-q="Bromo">Bromo</button>
+        <button class="schip px-4 py-1.5 rounded-full text-[13px] font-bold bg-sand hover:bg-forest hover:text-white transition" data-q="Bali">Bali</button>
+        <button class="schip px-4 py-1.5 rounded-full text-[13px] font-bold bg-sand hover:bg-forest hover:text-white transition" data-q="Family">Family</button>
+        <button class="schip px-4 py-1.5 rounded-full text-[13px] font-bold bg-sand hover:bg-forest hover:text-white transition" data-q="Adventure">Adventure</button>
+        <button class="schip px-4 py-1.5 rounded-full text-[13px] font-bold bg-sand hover:bg-forest hover:text-white transition" data-q="3 hari">3 hari</button>
+      </div>
+      <div id="searchResults" class="py-2 max-h-[55vh] overflow-y-auto" aria-live="polite"></div>
+      <div class="border-t border-forest/10 px-5 py-3.5 bg-white">
+        <a href="#/packages" onclick="closeSearch()" class="text-[13.5px] font-bold text-terra underline underline-offset-4 hover:text-terradeep">Lihat Semua Paket →</a>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ============ APP ============ -->
 <main id="app" class="min-h-screen" tabindex="-1"></main>
@@ -107,7 +133,7 @@ tailwind.config = {
 <div id="stickyBook" class="hidden fixed bottom-0 inset-x-0 z-40 lg:hidden bg-offwhite/97 backdrop-blur border-t border-forest/15 px-4 pt-3" style="padding-bottom:calc(.8rem + env(safe-area-inset-bottom))">
   <div class="flex items-center gap-3 max-w-xl mx-auto">
     <div class="flex-1 min-w-0"><p id="stickyPrice" class="font-extrabold text-[15px] truncate"></p><p class="text-[12px] text-charcoal/60">per person · incl. taxes</p></div>
-    <a id="stickyWA" href="#" target="_blank" rel="noopener" class="btn-terra flex-1 text-center font-bold text-[15px] px-5 py-3.5 rounded-full">Book via WhatsApp</a>
+    <a id="stickyWA" href="#" target="_blank" rel="noopener" class="btn-terra flex-1 text-center font-bold text-[15px] px-5 py-3.5 rounded-full">Book This Journey</a>
   </div>
 </div>
 
@@ -283,7 +309,9 @@ function pkgCard(p){
       <div class="flex items-end justify-between mt-4 pt-4 border-t border-forest/10">
         <div><p class="text-[12px] text-charcoal/55">From</p><p class="font-extrabold text-[18px]">${rp(p.price)} <span class="font-medium text-[12px] text-charcoal/50">/ person</span></p></div>
         <a href="#/package/${p.slug}" class="text-[14px] font-bold px-4 py-2.5 rounded-full border border-forest text-forest hover:bg-forest hover:text-white transition">View Details</a>
-      </div></div></article>`;
+      </div>
+      <a target="_blank" rel="noopener" href="${wa(`Hi ARUNA Travel, I'm interested in booking ${p.name} in ${p.dest} (${p.dur}). Could you share the available departure dates and booking details?`)}" class="btn-terra block text-center text-[14px] font-bold px-4 py-3 rounded-full mt-3">Book This Journey</a>
+    </div></article>`;
 }
 function observeReveals(){
   const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }),{threshold:.12});
@@ -293,7 +321,7 @@ function openLB(src,cap,alt){ const l=$('#lightbox'); $('#lbImg').src=src; $('#l
 function closeLB(){ $('#lightbox').classList.add('hidden'); document.body.style.overflow=''; }
 window.openLB=openLB; window.closeLB=closeLB;
 $('#lightbox').addEventListener('click',(e)=>{ if(e.target.id==='lightbox') closeLB(); });
-document.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ closeLB(); $('#mobileMenu').classList.add('hidden'); } });
+document.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ closeLB(); closeSearch(); $('#mobileMenu').classList.add('hidden'); } });
 
 /* ================= PAGES ================= */
 function pageHome(){
@@ -363,7 +391,7 @@ function pageHome(){
 
   <!-- TRIP FINDER -->
   <section class="max-w-5xl mx-auto px-5 lg:px-8 py-14 lg:py-20" aria-label="Smart trip finder">
-    <div class="reveal text-center max-w-2xl mx-auto"><p class="eyebrow text-terra">SMART TRIP FINDER</p><h2 class="font-serif text-4xl lg:text-5xl font-bold mt-2">Find a Journey That Fits You</h2><p class="text-charcoal/65 mt-3">Answer three quick questions — we’ll match you with the right journey. No account needed.</p></div>
+    <div class="reveal text-center max-w-2xl mx-auto"><p class="eyebrow text-terra">SMART TRIP FINDER</p><h2 class="font-serif text-4xl lg:text-5xl font-bold mt-2">Find a Journey That Fits You</h2><p class="text-charcoal/65 mt-3">Find a journey that feels like you — answer three quick questions and get a transparent match score. No account needed.</p></div>
     <div class="reveal mt-8 hairline rounded-3xl bg-white p-6 sm:p-10">
       <p class="font-bold text-[15px]">1 · What’s your travel mood?</p>
       <div class="mt-3 flex flex-wrap gap-2" role="group" aria-label="Travel mood">
@@ -389,7 +417,7 @@ function pageHome(){
       <div class="reveal"><p class="eyebrow text-terra">WHY ARUNA</p><h2 class="font-serif text-4xl lg:text-5xl font-bold mt-2 leading-tight">Travel Should Feel Effortless.</h2>
         <p class="text-charcoal/70 mt-4 leading-relaxed">From the first question to the journey home, we take care of the details so you can focus on the experience.</p>
         <div class="mt-7 space-y-5">
-          ${[['Thoughtfully Curated','Every itinerary is designed with purpose — tested routes, honest pacing, no filler stops.'],['Transparent Pricing','Know exactly what’s included before you book. No hidden fees, ever.'],['Local Experience','Go beyond the usual tourist stops with guides who grew up there.'],['Human Support','Real people ready to help before and during your trip — on WhatsApp, fast.']].map((x,i)=>`
+          ${[['Thoughtfully Curated','Every itinerary is designed with purpose — tested routes, honest pacing, no filler stops.'],['Transparent Pricing','Clear package details, inclusions, and exclusions.'],['Local Expertise','Thoughtfully curated routes and local destination knowledge.'],['Human Support','Talk directly with our travel team through WhatsApp.']].map((x,i)=>`
           <div class="flex gap-4"><span class="font-serif text-terra text-xl font-bold">0${i+1}</span><div><h3 class="font-bold text-[16px]">${x[0]}</h3><p class="text-[14px] text-charcoal/65 mt-0.5">${x[1]}</p></div></div>`).join('')}
         </div></div>
     </div>
@@ -437,6 +465,8 @@ function pagePackages(){
     <h1 class="font-serif text-4xl lg:text-6xl font-bold mt-2">All Journeys</h1>
     <p class="text-charcoal/65 mt-3 max-w-2xl">Filter by destination, duration, budget, or travel style. Every card opens a full detail page with itinerary, inclusions, and WhatsApp booking.</p>
     <div class="mt-7 hairline rounded-2xl bg-white p-4 sm:p-5 grid sm:grid-cols-2 lg:grid-cols-4 gap-3" role="group" aria-label="Package filters">
+      <label class="block sm:col-span-2 lg:col-span-4"><span class="text-[12px] font-bold tracking-widest text-charcoal/55">SEARCH</span>
+        <input id="fQ" type="search" placeholder="Search destination, package, or activity..." autocomplete="off" aria-label="Search destination, package, or activity" class="mt-1.5 w-full border border-forest/20 rounded-xl px-4 py-3 bg-offwhite outline-none focus:border-terra"></label>
       <label class="block"><span class="text-[12px] font-bold tracking-widest text-charcoal/55">DESTINATION</span>
         <select id="fDest" class="mt-1.5 w-full border border-forest/20 rounded-xl px-4 py-3 bg-offwhite font-semibold"><option value="all">All destinations</option><option value="bali">Bali</option><option value="east-java">East Java</option><option value="yogyakarta">Yogyakarta</option><option value="flores">Flores</option></select></label>
       <label class="block"><span class="text-[12px] font-bold tracking-widest text-charcoal/55">DURATION</span>
@@ -446,13 +476,16 @@ function pagePackages(){
       <label class="block"><span class="text-[12px] font-bold tracking-widest text-charcoal/55">TRAVEL STYLE</span>
         <select id="fStyle" class="mt-1.5 w-full border border-forest/20 rounded-xl px-4 py-3 bg-offwhite font-semibold"><option value="all">All styles</option><option>Adventure</option><option>Relaxing</option><option>Cultural</option><option>Nature</option><option>Family</option></select></label>
     </div>
-    <p id="pkgCount" class="text-[13px] text-charcoal/55 mt-4" aria-live="polite"></p>
+    <div class="mt-4 flex items-center justify-between gap-3">
+      <p id="pkgCount" class="text-[13px] font-semibold text-charcoal/55" aria-live="polite"></p>
+      <button id="pkgReset" class="shrink-0 text-[13px] font-bold text-terra underline underline-offset-4 hover:text-terradeep">Reset filters</button>
+    </div>
     <div id="pkgGrid" class="mt-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
   </section>`;
 }
 
 function pageDetail(p){
-  const bookMsg = `Halo ARUNA Travel, saya tertarik dengan paket ${p.name} ${p.days}D${p.nights}N. Saya ingin mendapatkan informasi mengenai jadwal dan proses booking.`;
+  const bookMsg = `Hi ARUNA Travel, I'm interested in booking ${p.name} in ${p.dest} (${p.dur}). Could you share the available departure dates and booking details?`;
   const others = PACKAGES.filter(x=>x.slug!==p.slug).slice(0,3);
   return `
   <section class="relative min-h-[70svh] flex items-end text-white" aria-label="${p.name}">
@@ -516,6 +549,7 @@ function pageDetail(p){
         <p class="eyebrow text-terra">${p.badge?p.badge.toUpperCase():'CURATED'}</p>
         <h2 class="font-serif text-2xl font-bold mt-1">${p.name}</h2>
         <p class="text-[13px] font-semibold text-charcoal/55 mt-1">★ ${p.rating} · ${p.dur} · ${p.dest}</p>
+        <p class="text-[12px] font-bold text-terra mt-1 tracking-[.14em]">${p.styles.join(' · ').toUpperCase()}</p>
         <p class="font-extrabold text-2xl mt-4">${rp(p.price)} <span class="text-sm font-medium text-charcoal/50">/ person</span></p>
         <a target="_blank" rel="noopener" href="${wa(bookMsg)}" class="btn-terra block text-center font-bold px-6 py-4 rounded-full mt-4">Book This Journey</a>
         <a href="#/contact" class="block text-center font-bold px-6 py-3.5 rounded-full border border-forest/25 mt-2.5 hover:border-forest">Ask a Question</a>
@@ -545,7 +579,7 @@ function pageDestinations(){
         <h3 class="font-bold text-[14px] tracking-widest mt-6 text-charcoal/55">RECOMMENDED JOURNEYS</h3>
         <div class="mt-2 space-y-2">${pkgs.map(p=>`<a href="#/package/${p.slug}" class="flex items-center justify-between gap-3 hairline rounded-xl bg-white px-4 py-3 hover:shadow-md transition"><span class="font-bold text-[14.5px]">${p.name} <span class="font-medium text-charcoal/50">· ${p.dur}</span></span><span class="text-terra font-bold">→</span></a>`).join('')}</div>
         <div class="mt-5 flex flex-wrap gap-2.5">
-          ${pkgs.map(p=>`<a target="_blank" rel="noopener" href="${wa('Halo ARUNA Travel, saya tertarik dengan paket '+p.name+' di '+d.name+'. Boleh info jadwal?')}" class="text-[13.5px] font-bold px-5 py-2.5 rounded-full bg-forest text-white">Book ${p.name}</a>`).join('')}
+          ${pkgs.map(p=>`<a target="_blank" rel="noopener" href="${wa(`Hi ARUNA Travel, I'm interested in booking ${p.name} in ${d.name}. Could you share the available departure dates and booking details?`)}" class="text-[13.5px] font-bold px-5 py-2.5 rounded-full bg-forest text-white">Book ${p.name}</a>`).join('')}
           <a href="#/gallery" class="text-[13.5px] font-bold px-5 py-2.5 rounded-full border border-forest/30">View gallery</a>
         </div></div>
     </div>
@@ -624,9 +658,54 @@ function pageContact(){
   </section>`;
 }
 
+/* ================= SEARCH ================= */
+function pkgSearchText(p){
+  return [p.name,p.dest,p.region,p.dur,p.short,p.overview,p.styles.join(' '),p.included.join(' '),p.days+'d'+p.nights+'n',p.days+' days',p.nights+' nights',p.days+' hari',p.quick.difficulty,p.quick.suitable,p.quick.departure].join(' ').toLowerCase();
+}
+function pkgMatches(p,q){
+  const toks=(q||'').toLowerCase().split(/\s+/).map(t=>t.trim()).filter(t=>t && t!=='hari' && t!=='day' && t!=='days' && t!=='dan' && t!=='di');
+  if(!toks.length) return true;
+  const text=pkgSearchText(p);
+  return toks.every(t=>{
+    if(/^\d+$/.test(t)){ const n=+t; return p.days===n||p.nights===n; }
+    return text.includes(t);
+  });
+}
+function hiMark(text,q){
+  const toks=(q||'').split(/\s+/).filter(t=>t.length>1).sort((a,b)=>b.length-a.length);
+  let out=text;
+  toks.forEach(t=>{ try{ out=out.replace(new RegExp('('+t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig'),'<mark class="bg-sand px-0.5 rounded">$1</mark>'); }catch(e){} });
+  return out;
+}
+function renderSearch(q){
+  const box=$('#searchResults'); if(!box) return;
+  const query=(q||'').trim();
+  if(query.length<2){ box.innerHTML=`<p class="px-5 py-5 text-[14px] text-charcoal/55">Ketik minimal 2 huruf — coba nama paket, destinasi, atau aktivitas seperti “snorkeling”.</p>`; return; }
+  const list=PACKAGES.filter(p=>pkgMatches(p,query));
+  if(!list.length){ box.innerHTML=`<div class="px-5 py-7 text-center"><p class="font-serif text-xl font-bold">Belum menemukan perjalanan yang cocok.</p><p class="text-[14px] text-charcoal/60 mt-1.5">Coba cari destinasi, aktivitas, atau nama paket lain.</p><a href="#/packages" onclick="closeSearch()" class="inline-block mt-4 px-6 py-3 rounded-full bg-forest text-white text-sm font-bold">Lihat Semua Paket</a></div>`; return; }
+  box.innerHTML=list.map(p=>`<a href="#/package/${p.slug}" onclick="closeSearch()" class="flex items-center gap-3.5 px-4 py-3 hover:bg-sand/60 transition border-b border-forest/5 last:border-0">
+    <img src="${p.img}" alt="" class="w-14 h-14 rounded-xl object-cover shrink-0">
+    <span class="flex-1 min-w-0"><span class="block font-bold text-[14.5px] truncate">${hiMark(p.name,query)}</span>
+    <span class="block text-[12.5px] text-charcoal/55">${p.dest} · ${p.dur}</span></span>
+    <span class="text-[13.5px] font-extrabold whitespace-nowrap">${rp(p.price)}</span></a>`).join('');
+}
+function openSearch(){ const w=$('#searchWrap'); if(!w) return; w.classList.remove('hidden'); document.body.style.overflow='hidden'; const i=$('#globalSearch'); i.value=''; renderSearch(''); setTimeout(()=>i.focus(),60); }
+function closeSearch(){ const w=$('#searchWrap'); if(!w||w.classList.contains('hidden')) return; w.classList.add('hidden'); if($('#lightbox').classList.contains('hidden')) document.body.style.overflow=''; }
+window.closeSearch=closeSearch;
+(function initGlobalSearch(){
+  let deb=null;
+  $('#searchBtn').addEventListener('click',openSearch);
+  $('#searchClose').addEventListener('click',closeSearch);
+  $('#searchBackdrop').addEventListener('click',closeSearch);
+  $('#globalSearch').addEventListener('input',(e)=>{ clearTimeout(deb); deb=setTimeout(()=>renderSearch(e.target.value),160); });
+  $$('.schip').forEach(c=>c.addEventListener('click',()=>{ const i=$('#globalSearch'); i.value=c.dataset.q; renderSearch(i.value); i.focus(); }));
+  document.addEventListener('keydown',(e)=>{ if(e.key==='/' && !/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName||'')){ e.preventDefault(); openSearch(); } });
+})();
+
 /* ================= ROUTER ================= */
 const app = $('#app'), nav = $('#siteNav'), sticky = $('#stickyBook');
 function route(){
+  closeSearch();
   const h = location.hash || '#/';
   const [_, path, param] = h.match(/^#\/([a-z]*)\/?([^?]*)/) || [null,'',''];
   window.scrollTo({top:0});
@@ -646,7 +725,7 @@ function route(){
   // sticky bar only on detail (mobile CSS hides on lg)
   if(path==='package' && bySlug(param)){ const p=bySlug(param);
     sticky.classList.remove('hidden'); $('#stickyPrice').textContent = p.name+' · '+rp(p.price);
-    $('#stickyWA').href = wa(`Halo ARUNA Travel, saya tertarik dengan paket ${p.name} ${p.days}D${p.nights}N. Saya ingin mendapatkan informasi mengenai jadwal dan proses booking.`);
+    $('#stickyWA').href = wa(`Hi ARUNA Travel, I'm interested in booking ${p.name} in ${p.dest} (${p.dur}). Could you share the available departure dates and booking details?`);
     document.body.style.paddingBottom='76px';
   } else { sticky.classList.add('hidden'); document.body.style.paddingBottom=''; }
   updateNav(isHome);
@@ -675,14 +754,17 @@ $$('.mlink').forEach(a=>a.addEventListener('click',()=>{ $('#mobileMenu').classL
 function budgetOf(price){ return price<3000000?'low':(price<=5000000?'mid':'high'); }
 function durOf(days){ return days<=3?'short':'mid'; }
 function initPkgFilters(){
+  let deb=null;
   const render=()=>{
-    const d=$('#fDest').value, du=$('#fDur').value, b=$('#fBud').value, s=$('#fStyle').value;
-    const list=PACKAGES.filter(p=>(d==='all'||p.region===d)&&(du==='all'||durOf(p.days)===du)&&(b==='all'||budgetOf(p.price)===b)&&(s==='all'||p.styles.includes(s)));
-    $('#pkgGrid').innerHTML = list.length? list.map(pkgCard).join('') : `<div class="col-span-full hairline rounded-2xl bg-white p-10 text-center"><p class="font-serif text-2xl font-bold">No journeys match — yet.</p><p class="text-charcoal/60 text-sm mt-2">Try widening the budget or tell us on WhatsApp; we tailor private routes.</p><a target="_blank" rel="noopener" href="${wa('Halo ARUNA Travel! Saya cari trip custom, boleh dibantu?')}" class="inline-block mt-4 px-6 py-3 rounded-full bg-forest text-white text-sm font-bold">Ask for Custom Trip</a></div>`;
-    $('#pkgCount').textContent = `Showing ${list.length} of ${PACKAGES.length} journeys`;
+    const q=$('#fQ').value, d=$('#fDest').value, du=$('#fDur').value, b=$('#fBud').value, s=$('#fStyle').value;
+    const list=PACKAGES.filter(p=>pkgMatches(p,q)&&(d==='all'||p.region===d)&&(du==='all'||durOf(p.days)===du)&&(b==='all'||budgetOf(p.price)===b)&&(s==='all'||p.styles.includes(s)));
+    $('#pkgGrid').innerHTML = list.length? list.map(pkgCard).join('') : `<div class="col-span-full hairline rounded-2xl bg-white p-10 text-center"><p class="font-serif text-2xl font-bold">No journeys match — yet.</p><p class="text-charcoal/60 text-sm mt-2">Try widening the budget or tell us on WhatsApp; we tailor private routes.</p><a target="_blank" rel="noopener" href="${wa('Hi ARUNA Travel! I am looking for a custom trip, could you help me?')}" class="inline-block mt-4 px-6 py-3 rounded-full bg-forest text-white text-sm font-bold">Ask for Custom Trip</a></div>`;
+    $('#pkgCount').textContent = `${list.length} package${list.length!==1?'s':''} found`;
     observeReveals(); $$('#pkgGrid .reveal').forEach(el=>el.classList.add('in'));
   };
+  $('#fQ').addEventListener('input',()=>{ clearTimeout(deb); deb=setTimeout(render,160); });
   ['fDest','fDur','fBud','fStyle'].forEach(id=>$('#'+id).addEventListener('change',render));
+  $('#pkgReset').addEventListener('click',()=>{ $('#fQ').value=''; $('#fDest').value='all'; $('#fDur').value='all'; $('#fBud').value='all'; $('#fStyle').value='all'; render(); });
   render();
 }
 
@@ -714,8 +796,8 @@ function initFinder(){
           <p class="font-serif font-bold text-[18px] leading-snug mt-1">${m.p.name}</p>
           <p class="text-[12.5px] text-charcoal/60 mt-1">${m.p.dur} · ${rp(m.p.price)}/pax</p>
           <p class="text-[13px] text-charcoal/70 mt-2 leading-relaxed">Because it ${m.why.join(', ')}.</p>
-          <div class="mt-3 grid grid-cols-2 gap-2"><a href="#/package/${m.p.slug}" class="text-center text-[13px] font-bold px-3 py-2.5 rounded-full border border-forest text-forest">Details</a>
-          <a target="_blank" rel="noopener" href="${wa('Halo ARUNA Travel! Trip Finder merekomendasikan '+m.p.name+' ('+m.score+'% match) untuk saya. Boleh info jadwal?')}" class="text-center text-[13px] font-bold px-3 py-2.5 rounded-full bg-forest text-white">Book</a></div>
+          <div class="mt-3 grid grid-cols-2 gap-2"><a href="#/package/${m.p.slug}" class="btn-terra text-center text-[13px] font-bold px-3 py-2.5 rounded-full">Explore Journey</a>
+          <a target="_blank" rel="noopener" href="${wa(`Hi ARUNA Travel! Trip Finder recommended ${m.p.name} (${m.score}% match) for me. Could you share the available departure dates and booking details?`)}" class="text-center text-[13px] font-bold px-3 py-2.5 rounded-full border border-forest text-forest hover:bg-forest hover:text-white transition">Book</a></div>
           </div></div>`).join('')}</div></div>`;
     out.scrollIntoView({behavior:'smooth', block:'nearest'});
   });
